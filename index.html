@@ -1,0 +1,947 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Synthos — AI Writing Intelligence</title>
+  <meta name="description" content="Synthos turns rough ideas into publication-ready content in seconds. The AI writing layer for modern teams." />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=DM+Sans:wght@300;400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet" />
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --ink: #0a0b0e;
+      --ink-2: #12141a;
+      --ink-3: #1a1d27;
+      --wire: rgba(255,255,255,0.07);
+      --wire-2: rgba(255,255,255,0.04);
+      --prose: #c8cdd8;
+      --muted: #5c6272;
+      --white: #f0f2f7;
+      --signal: #e2ff6e;
+      --signal-dim: rgba(226,255,110,0.12);
+      --signal-glow: rgba(226,255,110,0.06);
+      --blue: #4f8eff;
+      --blue-dim: rgba(79,142,255,0.1);
+      --serif: 'Instrument Serif', Georgia, serif;
+      --sans: 'DM Sans', system-ui, sans-serif;
+      --mono: 'JetBrains Mono', monospace;
+      --r: 12px;
+      --r-lg: 20px;
+    }
+
+    html { scroll-behavior: smooth; }
+
+    body {
+      background: var(--ink);
+      color: var(--prose);
+      font-family: var(--sans);
+      font-size: 16px;
+      line-height: 1.6;
+      overflow-x: hidden;
+      -webkit-font-smoothing: antialiased;
+    }
+
+    ::selection { background: var(--signal-dim); color: var(--signal); }
+
+    ::-webkit-scrollbar { width: 3px; }
+    ::-webkit-scrollbar-track { background: var(--ink); }
+    ::-webkit-scrollbar-thumb { background: var(--signal-dim); }
+
+    /* ── NAV ── */
+    nav {
+      position: fixed; top: 0; left: 0; right: 0; z-index: 100;
+      display: flex; align-items: center; justify-content: space-between;
+      padding: 0 clamp(1.5rem, 5vw, 4rem);
+      height: 64px;
+      border-bottom: 1px solid var(--wire-2);
+      transition: background 0.4s, border-color 0.4s;
+    }
+    nav.scrolled {
+      background: rgba(10,11,14,0.88);
+      backdrop-filter: blur(20px);
+      border-color: var(--wire);
+    }
+    .nav-logo {
+      display: flex; align-items: center; gap: 10px;
+      font-family: var(--sans); font-weight: 600; font-size: 1rem;
+      color: var(--white); text-decoration: none; letter-spacing: -0.01em;
+    }
+    .logo-mark {
+      width: 28px; height: 28px; border-radius: 8px;
+      background: var(--signal); display: flex; align-items: center; justify-content: center;
+    }
+    .logo-mark svg { width: 16px; height: 16px; }
+    .nav-links {
+      display: flex; align-items: center; gap: 2rem;
+      list-style: none;
+    }
+    .nav-links a {
+      color: var(--muted); font-size: 0.875rem; text-decoration: none;
+      transition: color 0.2s;
+    }
+    .nav-links a:hover { color: var(--white); }
+    .nav-cta {
+      display: flex; align-items: center; gap: 0.75rem;
+    }
+    .btn {
+      display: inline-flex; align-items: center; gap: 6px;
+      padding: 0.5rem 1.25rem; border-radius: var(--r);
+      font-family: var(--sans); font-size: 0.875rem; font-weight: 500;
+      cursor: pointer; text-decoration: none; border: none;
+      transition: all 0.2s;
+    }
+    .btn-ghost {
+      background: transparent; color: var(--muted); border: 1px solid var(--wire);
+    }
+    .btn-ghost:hover { color: var(--white); border-color: rgba(255,255,255,0.15); }
+    .btn-primary {
+      background: var(--signal); color: var(--ink);
+      font-weight: 600; letter-spacing: -0.01em;
+    }
+    .btn-primary:hover { background: #d4f550; transform: translateY(-1px); box-shadow: 0 8px 24px rgba(226,255,110,0.2); }
+    .btn-primary:active { transform: translateY(0); }
+    .btn-lg {
+      padding: 0.875rem 2rem; font-size: 1rem; border-radius: var(--r-lg);
+    }
+    .hamburger { display: none; flex-direction: column; gap: 5px; cursor: pointer; padding: 4px; }
+    .hamburger span { display: block; width: 22px; height: 1.5px; background: var(--muted); transition: all 0.3s; }
+
+    /* ── HERO ── */
+    .hero {
+      min-height: 100vh;
+      display: flex; flex-direction: column; align-items: center; justify-content: center;
+      text-align: center;
+      padding: 8rem clamp(1.5rem, 5vw, 4rem) 6rem;
+      position: relative; overflow: hidden;
+    }
+    .hero-bg {
+      position: absolute; inset: 0; pointer-events: none;
+      background:
+        radial-gradient(ellipse 70% 60% at 50% -10%, rgba(226,255,110,0.06) 0%, transparent 60%),
+        radial-gradient(ellipse 50% 40% at 80% 80%, rgba(79,142,255,0.05) 0%, transparent 60%);
+    }
+    .hero-grid {
+      position: absolute; inset: 0;
+      background-image: linear-gradient(var(--wire-2) 1px, transparent 1px), linear-gradient(90deg, var(--wire-2) 1px, transparent 1px);
+      background-size: 60px 60px;
+      mask-image: radial-gradient(ellipse 80% 70% at 50% 40%, black 30%, transparent 80%);
+    }
+    .hero-badge {
+      display: inline-flex; align-items: center; gap: 8px;
+      padding: 6px 14px; border-radius: 100px;
+      border: 1px solid rgba(226,255,110,0.2);
+      background: rgba(226,255,110,0.06);
+      font-size: 0.75rem; font-family: var(--mono);
+      color: var(--signal); margin-bottom: 2.5rem;
+      animation: fadeUp 0.6s ease both;
+    }
+    .badge-dot {
+      width: 6px; height: 6px; border-radius: 50%;
+      background: var(--signal);
+      box-shadow: 0 0 8px var(--signal);
+      animation: pulse 2s infinite;
+    }
+    @keyframes pulse {
+      0%, 100% { opacity: 1; }
+      50% { opacity: 0.4; }
+    }
+    .hero h1 {
+      font-family: var(--serif);
+      font-size: clamp(3rem, 7vw, 6.5rem);
+      font-weight: 400; line-height: 1.05;
+      color: var(--white); letter-spacing: -0.02em;
+      margin-bottom: 1.75rem;
+      max-width: 14ch;
+      animation: fadeUp 0.6s 0.1s ease both;
+    }
+    .hero h1 em {
+      font-style: italic; color: var(--signal);
+    }
+    .hero-sub {
+      font-size: clamp(1rem, 2vw, 1.2rem);
+      color: var(--muted); max-width: 52ch;
+      line-height: 1.7; margin-bottom: 2.5rem;
+      animation: fadeUp 0.6s 0.2s ease both;
+    }
+    .hero-actions {
+      display: flex; align-items: center; gap: 1rem; flex-wrap: wrap; justify-content: center;
+      animation: fadeUp 0.6s 0.3s ease both;
+    }
+    .hero-social-proof {
+      display: flex; align-items: center; gap: 1.5rem;
+      margin-top: 4rem; flex-wrap: wrap; justify-content: center;
+      animation: fadeUp 0.6s 0.45s ease both;
+    }
+    .avatar-stack {
+      display: flex;
+    }
+    .avatar {
+      width: 32px; height: 32px; border-radius: 50%;
+      border: 2px solid var(--ink); margin-left: -8px;
+      background: linear-gradient(135deg, var(--ink-3), var(--ink-2));
+      display: flex; align-items: center; justify-content: center;
+      font-size: 0.7rem; font-weight: 500; color: var(--muted);
+    }
+    .avatar:first-child { margin-left: 0; }
+    .proof-text { font-size: 0.8rem; color: var(--muted); }
+    .proof-text strong { color: var(--white); }
+
+    /* ── DEMO TERMINAL ── */
+    .hero-terminal {
+      position: relative; width: 100%; max-width: 680px;
+      margin: 4rem auto 0;
+      animation: fadeUp 0.7s 0.5s ease both;
+    }
+    .terminal-glow {
+      position: absolute; inset: -1px; border-radius: calc(var(--r-lg) + 1px);
+      background: linear-gradient(135deg, rgba(226,255,110,0.15), rgba(79,142,255,0.1), transparent);
+      z-index: -1;
+    }
+    .terminal {
+      background: var(--ink-2); border: 1px solid var(--wire);
+      border-radius: var(--r-lg); overflow: hidden;
+    }
+    .terminal-bar {
+      display: flex; align-items: center; gap: 8px;
+      padding: 12px 16px; border-bottom: 1px solid var(--wire-2);
+      background: var(--ink-3);
+    }
+    .t-dot { width: 10px; height: 10px; border-radius: 50%; }
+    .t-dot.r { background: #ff5f56; }
+    .t-dot.y { background: #ffbd2e; }
+    .t-dot.g { background: #27c93f; }
+    .t-label { margin-left: auto; font-family: var(--mono); font-size: 0.7rem; color: var(--muted); }
+    .terminal-body { padding: 20px 24px; text-align: left; }
+    .t-prompt {
+      display: flex; align-items: flex-start; gap: 10px;
+      margin-bottom: 16px;
+    }
+    .t-icon {
+      width: 24px; height: 24px; border-radius: 6px;
+      background: var(--signal-dim); display: flex; align-items: center; justify-content: center;
+      flex-shrink: 0; margin-top: 2px;
+    }
+    .t-icon svg { width: 13px; height: 13px; color: var(--signal); }
+    .t-text { font-size: 0.85rem; color: var(--muted); line-height: 1.5; }
+    .t-response {
+      background: var(--ink-3); border: 1px solid var(--wire);
+      border-radius: var(--r); padding: 14px 16px;
+      margin-bottom: 12px;
+    }
+    .t-response p { font-size: 0.875rem; color: var(--prose); line-height: 1.65; }
+    .t-tags { display: flex; gap: 6px; flex-wrap: wrap; }
+    .t-tag {
+      padding: 3px 10px; border-radius: 100px; font-size: 0.7rem; font-family: var(--mono);
+    }
+    .t-tag.green { background: rgba(226,255,110,0.1); color: var(--signal); border: 1px solid rgba(226,255,110,0.2); }
+    .t-tag.blue  { background: var(--blue-dim); color: var(--blue); border: 1px solid rgba(79,142,255,0.2); }
+    .t-tag.muted { background: var(--wire-2); color: var(--muted); border: 1px solid var(--wire); }
+    .t-cursor {
+      display: inline-block; width: 2px; height: 14px;
+      background: var(--signal); margin-left: 2px;
+      animation: blink 1s infinite;
+      vertical-align: middle;
+    }
+    @keyframes blink { 0%, 100% { opacity: 1; } 50% { opacity: 0; } }
+
+    /* ── LOGOS ── */
+    .logos {
+      padding: 3rem clamp(1.5rem, 5vw, 4rem);
+      border-top: 1px solid var(--wire-2);
+      border-bottom: 1px solid var(--wire-2);
+    }
+    .logos-inner { max-width: 900px; margin: 0 auto; text-align: center; }
+    .logos-label { font-size: 0.75rem; font-family: var(--mono); color: var(--muted); margin-bottom: 2rem; letter-spacing: 0.05em; }
+    .logos-row {
+      display: flex; align-items: center; justify-content: center;
+      gap: clamp(1.5rem, 4vw, 3.5rem); flex-wrap: wrap;
+    }
+    .logo-item {
+      font-family: var(--sans); font-weight: 600; font-size: 0.9rem;
+      color: var(--muted); opacity: 0.5;
+      letter-spacing: -0.02em; transition: opacity 0.2s;
+    }
+    .logo-item:hover { opacity: 0.8; }
+
+    /* ── SECTION COMMON ── */
+    section { padding: clamp(5rem, 10vw, 8rem) clamp(1.5rem, 5vw, 4rem); }
+    .section-inner { max-width: 1100px; margin: 0 auto; }
+    .section-header { margin-bottom: clamp(3rem, 6vw, 5rem); }
+    .eyebrow {
+      font-family: var(--mono); font-size: 0.72rem; color: var(--signal);
+      margin-bottom: 1rem; letter-spacing: 0.04em;
+    }
+    h2 {
+      font-family: var(--serif); font-size: clamp(2rem, 4.5vw, 3.5rem);
+      font-weight: 400; color: var(--white); line-height: 1.1;
+      letter-spacing: -0.02em; max-width: 18ch;
+    }
+    .section-desc { font-size: 1rem; color: var(--muted); max-width: 50ch; margin-top: 1rem; line-height: 1.7; }
+
+    /* ── FEATURES ── */
+    .features-bg { background: var(--ink-2); }
+    .features-grid {
+      display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+      gap: 1px; border: 1px solid var(--wire); border-radius: var(--r-lg);
+      overflow: hidden; background: var(--wire);
+    }
+    .feature-card {
+      background: var(--ink-2); padding: 2rem;
+      transition: background 0.3s;
+    }
+    .feature-card:hover { background: var(--ink-3); }
+    .feature-icon {
+      width: 40px; height: 40px; border-radius: 10px; margin-bottom: 1.25rem;
+      display: flex; align-items: center; justify-content: center;
+      background: var(--signal-dim); border: 1px solid rgba(226,255,110,0.15);
+    }
+    .feature-icon svg { width: 20px; height: 20px; color: var(--signal); }
+    .feature-title {
+      font-family: var(--sans); font-weight: 600; font-size: 1rem;
+      color: var(--white); margin-bottom: 0.5rem;
+    }
+    .feature-desc { font-size: 0.875rem; color: var(--muted); line-height: 1.65; }
+
+    /* ── HOW IT WORKS ── */
+    .how-grid {
+      display: grid; grid-template-columns: 1fr 1fr;
+      gap: 5rem; align-items: center;
+    }
+    .steps { display: flex; flex-direction: column; gap: 0; }
+    .step {
+      display: flex; gap: 1.25rem; padding: 1.75rem 0;
+      border-bottom: 1px solid var(--wire-2); cursor: default;
+      transition: all 0.2s;
+    }
+    .step:last-child { border-bottom: none; }
+    .step:hover .step-num { background: var(--signal-dim); color: var(--signal); }
+    .step-num {
+      width: 32px; height: 32px; border-radius: 8px;
+      border: 1px solid var(--wire); background: var(--ink-3);
+      display: flex; align-items: center; justify-content: center;
+      font-family: var(--mono); font-size: 0.75rem; color: var(--muted);
+      flex-shrink: 0; transition: all 0.2s;
+    }
+    .step-title { font-weight: 600; color: var(--white); margin-bottom: 0.35rem; }
+    .step-desc { font-size: 0.875rem; color: var(--muted); line-height: 1.6; }
+    .how-visual {
+      background: var(--ink-2); border: 1px solid var(--wire);
+      border-radius: var(--r-lg); overflow: hidden;
+    }
+    .visual-header {
+      background: var(--ink-3); padding: 12px 16px;
+      border-bottom: 1px solid var(--wire-2);
+      display: flex; align-items: center; gap: 8px;
+    }
+    .visual-body { padding: 1.5rem; }
+    .vb-row {
+      display: flex; align-items: center; gap: 10px;
+      padding: 10px 12px; border-radius: var(--r);
+      margin-bottom: 8px; border: 1px solid var(--wire-2);
+      background: var(--ink-3);
+    }
+    .vb-dot { width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0; }
+    .vb-line { height: 8px; border-radius: 4px; background: var(--wire); flex: 1; }
+    .vb-chip { height: 8px; border-radius: 4px; width: 40px; }
+    .vb-meter {
+      background: var(--ink-3); border: 1px solid var(--wire-2);
+      border-radius: var(--r); padding: 14px;
+      margin-top: 12px;
+    }
+    .vb-label { font-family: var(--mono); font-size: 0.68rem; color: var(--muted); margin-bottom: 8px; }
+    .vb-bar { height: 4px; background: var(--wire); border-radius: 2px; overflow: hidden; margin-bottom: 6px; }
+    .vb-fill { height: 100%; border-radius: 2px; background: var(--signal); }
+
+    /* ── PRICING ── */
+    .pricing-grid {
+      display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+      gap: 1.5rem; max-width: 900px; margin: 0 auto;
+    }
+    .price-card {
+      border: 1px solid var(--wire); border-radius: var(--r-lg);
+      padding: 2rem; background: var(--ink-2);
+      transition: border-color 0.3s, transform 0.3s;
+      position: relative;
+    }
+    .price-card:hover { border-color: rgba(255,255,255,0.12); transform: translateY(-4px); }
+    .price-card.featured {
+      border-color: rgba(226,255,110,0.3);
+      background: linear-gradient(135deg, var(--ink-3) 0%, rgba(226,255,110,0.04) 100%);
+    }
+    .price-card.featured:hover { border-color: rgba(226,255,110,0.5); }
+    .price-badge {
+      position: absolute; top: -12px; left: 50%; transform: translateX(-50%);
+      padding: 4px 14px; border-radius: 100px;
+      background: var(--signal); color: var(--ink);
+      font-size: 0.7rem; font-weight: 700; font-family: var(--mono);
+      white-space: nowrap;
+    }
+    .price-tier { font-size: 0.8rem; color: var(--muted); font-family: var(--mono); margin-bottom: 1rem; }
+    .price-amount {
+      display: flex; align-items: baseline; gap: 4px;
+      margin-bottom: 0.5rem;
+    }
+    .price-currency { font-size: 1.25rem; color: var(--muted); }
+    .price-value { font-family: var(--serif); font-size: 3.5rem; color: var(--white); line-height: 1; }
+    .price-period { font-size: 0.8rem; color: var(--muted); }
+    .price-desc { font-size: 0.8rem; color: var(--muted); margin-bottom: 1.75rem; line-height: 1.5; }
+    .price-divider { height: 1px; background: var(--wire-2); margin-bottom: 1.5rem; }
+    .price-features { list-style: none; display: flex; flex-direction: column; gap: 10px; margin-bottom: 1.75rem; }
+    .price-features li {
+      display: flex; align-items: center; gap: 10px;
+      font-size: 0.875rem; color: var(--muted);
+    }
+    .check { width: 16px; height: 16px; border-radius: 50%; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
+    .check.on { background: var(--signal-dim); }
+    .check.on svg { width: 9px; height: 9px; color: var(--signal); }
+    .check.off { background: var(--wire-2); }
+    .check.off svg { width: 9px; height: 9px; color: var(--muted); }
+    .btn-plan {
+      width: 100%; padding: 0.75rem; border-radius: var(--r);
+      font-family: var(--sans); font-size: 0.875rem; font-weight: 600;
+      cursor: pointer; border: 1px solid var(--wire);
+      background: transparent; color: var(--muted);
+      transition: all 0.2s;
+    }
+    .btn-plan:hover { color: var(--white); border-color: rgba(255,255,255,0.2); }
+    .btn-plan.signal { background: var(--signal); color: var(--ink); border-color: transparent; }
+    .btn-plan.signal:hover { background: #d4f550; }
+
+    /* ── TESTIMONIALS ── */
+    .test-bg { background: var(--ink-2); }
+    .testimonials-grid {
+      display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+      gap: 1.5rem;
+    }
+    .testi-card {
+      background: var(--ink-3); border: 1px solid var(--wire);
+      border-radius: var(--r-lg); padding: 1.75rem;
+      transition: border-color 0.3s;
+    }
+    .testi-card:hover { border-color: rgba(255,255,255,0.12); }
+    .stars { display: flex; gap: 3px; margin-bottom: 1rem; }
+    .star { width: 14px; height: 14px; color: var(--signal); }
+    .testi-text { font-size: 0.9rem; color: var(--prose); line-height: 1.65; margin-bottom: 1.25rem; font-style: italic; }
+    .testi-author { display: flex; align-items: center; gap: 10px; }
+    .testi-av {
+      width: 34px; height: 34px; border-radius: 50%;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 0.75rem; font-weight: 600; color: var(--ink);
+    }
+    .testi-name { font-size: 0.85rem; font-weight: 600; color: var(--white); }
+    .testi-role { font-size: 0.75rem; color: var(--muted); }
+
+    /* ── CTA ── */
+    .cta-section {
+      text-align: center;
+      background: radial-gradient(ellipse 80% 60% at 50% 100%, rgba(226,255,110,0.06) 0%, transparent 70%);
+    }
+    .cta-box {
+      max-width: 640px; margin: 0 auto;
+      border: 1px solid rgba(226,255,110,0.12);
+      border-radius: 24px; padding: 4rem 2rem;
+      background: linear-gradient(135deg, var(--ink-2) 0%, rgba(226,255,110,0.03) 100%);
+    }
+    .cta-box h2 { max-width: none; text-align: center; margin-bottom: 1rem; }
+    .cta-sub { font-size: 1rem; color: var(--muted); margin-bottom: 2rem; }
+    .cta-input-row {
+      display: flex; gap: 8px; max-width: 400px; margin: 0 auto;
+    }
+    .cta-input {
+      flex: 1; padding: 0.75rem 1rem; border-radius: var(--r);
+      background: var(--ink); border: 1px solid var(--wire);
+      color: var(--white); font-family: var(--sans); font-size: 0.875rem;
+      outline: none; transition: border-color 0.2s;
+    }
+    .cta-input:focus { border-color: rgba(226,255,110,0.3); }
+    .cta-input::placeholder { color: var(--muted); }
+
+    /* ── FOOTER ── */
+    footer {
+      padding: 3rem clamp(1.5rem, 5vw, 4rem);
+      border-top: 1px solid var(--wire-2);
+    }
+    .footer-inner {
+      max-width: 1100px; margin: 0 auto;
+      display: flex; align-items: center; justify-content: space-between;
+      flex-wrap: wrap; gap: 1.5rem;
+    }
+    .footer-copy { font-size: 0.8rem; color: var(--muted); }
+    .footer-links { display: flex; gap: 1.5rem; }
+    .footer-links a { font-size: 0.8rem; color: var(--muted); text-decoration: none; transition: color 0.2s; }
+    .footer-links a:hover { color: var(--white); }
+
+    /* ── ANIMATIONS ── */
+    @keyframes fadeUp {
+      from { opacity: 0; transform: translateY(20px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+    .fade-up { animation: fadeUp 0.6s ease both; }
+    [data-reveal] { opacity: 0; transform: translateY(24px); transition: opacity 0.6s ease, transform 0.6s ease; }
+    [data-reveal].visible { opacity: 1; transform: translateY(0); }
+
+    /* ── RESPONSIVE ── */
+    @media (max-width: 768px) {
+      .nav-links, .nav-cta { display: none; }
+      .nav-links.open { display: flex; flex-direction: column; position: fixed; inset: 64px 0 0; background: var(--ink); padding: 2rem; gap: 1rem; z-index: 99; }
+      .nav-cta.open { display: flex; flex-direction: column; position: fixed; bottom: 0; left: 0; right: 0; padding: 1.5rem; background: var(--ink); border-top: 1px solid var(--wire); z-index: 99; }
+      .hamburger { display: flex; }
+      .how-grid { grid-template-columns: 1fr; }
+      .cta-input-row { flex-direction: column; }
+    }
+  </style>
+</head>
+<body>
+
+<!-- NAV -->
+<nav id="nav">
+  <a href="#" class="nav-logo">
+    <div class="logo-mark">
+      <svg viewBox="0 0 16 16" fill="none">
+        <path d="M3 8h10M8 3l5 5-5 5" stroke="#0a0b0e" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>
+      </svg>
+    </div>
+    Synthos
+  </a>
+  <ul class="nav-links" id="navLinks">
+    <li><a href="#features">Features</a></li>
+    <li><a href="#how">How it works</a></li>
+    <li><a href="#pricing">Pricing</a></li>
+    <li><a href="#testimonials">Reviews</a></li>
+  </ul>
+  <div class="nav-cta" id="navCta">
+    <a href="#" class="btn btn-ghost">Sign in</a>
+    <a href="#cta" class="btn btn-primary">Start free</a>
+  </div>
+  <div class="hamburger" id="hamburger" onclick="toggleMenu()">
+    <span></span><span></span><span></span>
+  </div>
+</nav>
+
+<!-- HERO -->
+<section class="hero" id="hero">
+  <div class="hero-bg"></div>
+  <div class="hero-grid"></div>
+
+  <div class="hero-badge">
+    <div class="badge-dot"></div>
+    Now in public beta · 4,200+ teams writing smarter
+  </div>
+
+  <h1>Write less.<br><em>Say more.</em></h1>
+
+  <p class="hero-sub">
+    Synthos is the AI writing layer built for product teams. Turn rough notes into clear docs, crisp release notes, and conversion-ready copy — in the time it takes to make coffee.
+  </p>
+
+  <div class="hero-actions">
+    <a href="#cta" class="btn btn-primary btn-lg">
+      <svg width="16" height="16" fill="none" viewBox="0 0 24 24"><path stroke="currentColor" stroke-width="2" stroke-linecap="round" d="M13 10V3L4 14h7v7l9-11h-7z"/></svg>
+      Start writing for free
+    </a>
+    <a href="#how" class="btn btn-ghost btn-lg">See how it works</a>
+  </div>
+
+  <div class="hero-social-proof">
+    <div class="avatar-stack">
+      <div class="avatar" style="background:linear-gradient(135deg,#3b4a6b,#1e2a40)">MK</div>
+      <div class="avatar" style="background:linear-gradient(135deg,#2d4a3e,#1a2e26)">AL</div>
+      <div class="avatar" style="background:linear-gradient(135deg,#4a2d3b,#2e1a24)">PR</div>
+      <div class="avatar" style="background:linear-gradient(135deg,#3b3a2d,#24231a)">DV</div>
+      <div class="avatar" style="background:linear-gradient(135deg,#2d3b4a,#1a2430)">+</div>
+    </div>
+    <div class="proof-text">Trusted by <strong>4,200+</strong> writers and product teams</div>
+    <div style="display:flex;gap:3px">
+      <svg width="13" height="13" fill="#e2ff6e" viewBox="0 0 24 24"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/></svg>
+      <svg width="13" height="13" fill="#e2ff6e" viewBox="0 0 24 24"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/></svg>
+      <svg width="13" height="13" fill="#e2ff6e" viewBox="0 0 24 24"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/></svg>
+      <svg width="13" height="13" fill="#e2ff6e" viewBox="0 0 24 24"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/></svg>
+      <svg width="13" height="13" fill="#e2ff6e" viewBox="0 0 24 24"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/></svg>
+    </div>
+    <div class="proof-text"><strong>4.9</strong> / 5 avg rating</div>
+  </div>
+
+  <!-- Terminal demo -->
+  <div class="hero-terminal">
+    <div class="terminal-glow"></div>
+    <div class="terminal">
+      <div class="terminal-bar">
+        <div class="t-dot r"></div>
+        <div class="t-dot y"></div>
+        <div class="t-dot g"></div>
+        <div class="t-label">synthos · live demo</div>
+      </div>
+      <div class="terminal-body">
+        <div class="t-prompt">
+          <div class="t-icon">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M12 8v4l3 3"/></svg>
+          </div>
+          <div class="t-text">Write release notes for our new dark mode feature. Tone: friendly, concise. Audience: developers.</div>
+        </div>
+        <div class="t-response">
+          <p><strong style="color:var(--white)">Dark Mode is here 🌙</strong><br>
+          Your eyes will thank you. Synthos now supports full dark mode across all views — toggle it in your profile settings. Built to respect your system preference by default, with manual override for when you want to switch mid-flow.<br><br>
+          This release also improves contrast ratios across the editor, so reading long documents feels easier at any hour.<span class="t-cursor"></span></p>
+        </div>
+        <div class="t-tags">
+          <span class="t-tag green">✓ Friendly tone</span>
+          <span class="t-tag blue">Dev audience</span>
+          <span class="t-tag muted">127 words · 0.8s</span>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- LOGOS -->
+<div class="logos">
+  <div class="logos-inner">
+    <p class="logos-label">Teams at these companies write with Synthos</p>
+    <div class="logos-row">
+      <span class="logo-item">Vercel</span>
+      <span class="logo-item">Linear</span>
+      <span class="logo-item">Loom</span>
+      <span class="logo-item">Raycast</span>
+      <span class="logo-item">Retool</span>
+      <span class="logo-item">Codeium</span>
+    </div>
+  </div>
+</div>
+
+<!-- FEATURES -->
+<section id="features" class="features-bg">
+  <div class="section-inner">
+    <div class="section-header" data-reveal>
+      <div class="eyebrow">What it does</div>
+      <h2>Writing tools built for how teams actually work</h2>
+      <p class="section-desc">Every feature exists to remove friction between your thinking and clear, publishable writing.</p>
+    </div>
+    <div class="features-grid" data-reveal>
+      <div class="feature-card">
+        <div class="feature-icon">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"/></svg>
+        </div>
+        <div class="feature-title">Context-aware drafts</div>
+        <p class="feature-desc">Paste your notes or link a Notion page. Synthos reads the context and writes a first draft that sounds like you wrote it — not a robot.</p>
+      </div>
+      <div class="feature-card">
+        <div class="feature-icon">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 00-3-3.87M16 3.13a4 4 0 010 7.75"/></svg>
+        </div>
+        <div class="feature-title">Shared voice library</div>
+        <p class="feature-desc">Define your brand voice once. Every teammate writes with it. The AI adapts tone, vocabulary, and structure to match your style guide automatically.</p>
+      </div>
+      <div class="feature-card">
+        <div class="feature-icon">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>
+        </div>
+        <div class="feature-title">Real-time suggestions</div>
+        <p class="feature-desc">As you type, Synthos suggests completions and rephrases in a ghost-text layer. Accept with Tab, ignore by continuing to type.</p>
+      </div>
+      <div class="feature-card">
+        <div class="feature-icon">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/><polyline points="10 9 9 9 8 9"/></svg>
+        </div>
+        <div class="feature-title">Template engine</div>
+        <p class="feature-desc">Build reusable templates for changelogs, onboarding emails, PRD sections, and more. Fill them with one command from any doc.</p>
+      </div>
+      <div class="feature-card">
+        <div class="feature-icon">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><polyline points="16 18 22 12 16 6"/><polyline points="8 6 2 12 8 18"/></svg>
+        </div>
+        <div class="feature-title">API access</div>
+        <p class="feature-desc">Send writing tasks from your own apps via the Synthos API. Generate docs from code comments, localize content, or run batch transformations.</p>
+      </div>
+      <div class="feature-card">
+        <div class="feature-icon">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0110 0v4"/></svg>
+        </div>
+        <div class="feature-title">Privacy first</div>
+        <p class="feature-desc">Your content is never used to train our models. Zero-data-retention mode available on all paid plans. SOC 2 Type II certified.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- HOW IT WORKS -->
+<section id="how">
+  <div class="section-inner">
+    <div class="how-grid">
+      <div data-reveal>
+        <div class="eyebrow">How it works</div>
+        <h2>From messy notes to polished prose in three steps</h2>
+        <div class="steps" style="margin-top:2.5rem">
+          <div class="step">
+            <div class="step-num">1</div>
+            <div>
+              <div class="step-title">Dump your raw thoughts</div>
+              <p class="step-desc">Paste bullet points, unstructured notes, or a rough outline. Synthos accepts anything — it doesn't need polished input to produce polished output.</p>
+            </div>
+          </div>
+          <div class="step">
+            <div class="step-num">2</div>
+            <div>
+              <div class="step-title">Set the parameters</div>
+              <p class="step-desc">Pick your audience, tone, and format. Or let Synthos infer them from your content. Defaults are smart enough that most people never change them.</p>
+            </div>
+          </div>
+          <div class="step">
+            <div class="step-num">3</div>
+            <div>
+              <div class="step-title">Refine and ship</div>
+              <p class="step-desc">Get a structured draft in under 2 seconds. Edit inline, ask for rewrites, or push directly to Notion, Confluence, or your CMS.</p>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="how-visual" data-reveal style="transition-delay:0.15s">
+        <div class="visual-header">
+          <div class="t-dot r"></div>
+          <div class="t-dot y"></div>
+          <div class="t-dot g"></div>
+          <span style="margin-left:8px;font-family:var(--mono);font-size:0.7rem;color:var(--muted)">output preview</span>
+        </div>
+        <div class="visual-body">
+          <div class="vb-row">
+            <div class="vb-dot" style="background:var(--signal)"></div>
+            <div class="vb-line" style="width:60%;background:rgba(226,255,110,0.15)"></div>
+            <div class="vb-chip" style="background:var(--signal-dim)"></div>
+          </div>
+          <div class="vb-row">
+            <div class="vb-dot" style="background:var(--muted)"></div>
+            <div class="vb-line"></div>
+          </div>
+          <div class="vb-row">
+            <div class="vb-dot" style="background:var(--muted)"></div>
+            <div class="vb-line" style="width:80%"></div>
+          </div>
+          <div class="vb-row">
+            <div class="vb-dot" style="background:var(--muted)"></div>
+            <div class="vb-line" style="width:70%"></div>
+          </div>
+          <div class="vb-meter">
+            <div class="vb-label">writing quality score</div>
+            <div class="vb-bar"><div class="vb-fill" style="width:88%"></div></div>
+            <div style="display:flex;justify-content:space-between">
+              <span style="font-family:var(--mono);font-size:0.65rem;color:var(--signal)">88 / 100</span>
+              <span style="font-family:var(--mono);font-size:0.65rem;color:var(--muted)">Excellent</span>
+            </div>
+          </div>
+          <div class="vb-meter" style="margin-top:8px">
+            <div class="vb-label">tone match</div>
+            <div class="vb-bar"><div class="vb-fill" style="width:96%;background:var(--blue)"></div></div>
+            <div style="display:flex;justify-content:space-between">
+              <span style="font-family:var(--mono);font-size:0.65rem;color:var(--blue)">96 / 100</span>
+              <span style="font-family:var(--mono);font-size:0.65rem;color:var(--muted)">On-brand</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- PRICING -->
+<section id="pricing" class="features-bg">
+  <div class="section-inner">
+    <div class="section-header" style="text-align:center" data-reveal>
+      <div class="eyebrow">Pricing</div>
+      <h2 style="max-width:none;text-align:center">Simple, honest pricing</h2>
+      <p class="section-desc" style="margin:1rem auto 0">No per-seat surprise. Pick the plan that fits — change or cancel anytime.</p>
+    </div>
+    <div class="pricing-grid" data-reveal>
+      <div class="price-card">
+        <div class="price-tier">Starter</div>
+        <div class="price-amount">
+          <span class="price-currency">$</span>
+          <span class="price-value">0</span>
+          <span class="price-period">/ mo</span>
+        </div>
+        <p class="price-desc">For individuals getting started. No credit card required.</p>
+        <div class="price-divider"></div>
+        <ul class="price-features">
+          <li><div class="check on"><svg viewBox="0 0 10 8" fill="none"><path d="M1 4l2.5 2.5L9 1" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg></div>50 generations / month</li>
+          <li><div class="check on"><svg viewBox="0 0 10 8" fill="none"><path d="M1 4l2.5 2.5L9 1" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg></div>3 templates</li>
+          <li><div class="check on"><svg viewBox="0 0 10 8" fill="none"><path d="M1 4l2.5 2.5L9 1" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg></div>Basic tone controls</li>
+          <li><div class="check off"><svg viewBox="0 0 10 10" fill="none"><path d="M1 9L9 1M1 1l8 8" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg></div><span style="opacity:0.4">Team voice library</span></li>
+          <li><div class="check off"><svg viewBox="0 0 10 10" fill="none"><path d="M1 9L9 1M1 1l8 8" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg></div><span style="opacity:0.4">API access</span></li>
+        </ul>
+        <button class="btn-plan">Get started free</button>
+      </div>
+
+      <div class="price-card featured">
+        <div class="price-badge">Most popular</div>
+        <div class="price-tier">Pro</div>
+        <div class="price-amount">
+          <span class="price-currency">$</span>
+          <span class="price-value">29</span>
+          <span class="price-period">/ mo</span>
+        </div>
+        <p class="price-desc">For professional writers and small teams who ship content daily.</p>
+        <div class="price-divider"></div>
+        <ul class="price-features">
+          <li><div class="check on"><svg viewBox="0 0 10 8" fill="none"><path d="M1 4l2.5 2.5L9 1" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg></div>Unlimited generations</li>
+          <li><div class="check on"><svg viewBox="0 0 10 8" fill="none"><path d="M1 4l2.5 2.5L9 1" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg></div>Unlimited templates</li>
+          <li><div class="check on"><svg viewBox="0 0 10 8" fill="none"><path d="M1 4l2.5 2.5L9 1" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg></div>Full tone + voice controls</li>
+          <li><div class="check on"><svg viewBox="0 0 10 8" fill="none"><path d="M1 4l2.5 2.5L9 1" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg></div>Team voice library</li>
+          <li><div class="check off"><svg viewBox="0 0 10 10" fill="none"><path d="M1 9L9 1M1 1l8 8" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg></div><span style="opacity:0.4">API access</span></li>
+        </ul>
+        <button class="btn-plan signal">Start Pro trial</button>
+      </div>
+
+      <div class="price-card">
+        <div class="price-tier">Team</div>
+        <div class="price-amount">
+          <span class="price-currency">$</span>
+          <span class="price-value">79</span>
+          <span class="price-period">/ mo</span>
+        </div>
+        <p class="price-desc">For product teams that need shared workflows and API integrations.</p>
+        <div class="price-divider"></div>
+        <ul class="price-features">
+          <li><div class="check on"><svg viewBox="0 0 10 8" fill="none"><path d="M1 4l2.5 2.5L9 1" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg></div>Everything in Pro</li>
+          <li><div class="check on"><svg viewBox="0 0 10 8" fill="none"><path d="M1 4l2.5 2.5L9 1" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg></div>Up to 20 seats</li>
+          <li><div class="check on"><svg viewBox="0 0 10 8" fill="none"><path d="M1 4l2.5 2.5L9 1" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg></div>API access + webhooks</li>
+          <li><div class="check on"><svg viewBox="0 0 10 8" fill="none"><path d="M1 4l2.5 2.5L9 1" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg></div>Priority support</li>
+          <li><div class="check on"><svg viewBox="0 0 10 8" fill="none"><path d="M1 4l2.5 2.5L9 1" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg></div>SSO + audit logs</li>
+        </ul>
+        <button class="btn-plan">Talk to sales</button>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- TESTIMONIALS -->
+<section id="testimonials" class="test-bg">
+  <div class="section-inner">
+    <div class="section-header" data-reveal>
+      <div class="eyebrow">What people say</div>
+      <h2>Writers who switched don't go back</h2>
+    </div>
+    <div class="testimonials-grid" data-reveal>
+      <div class="testi-card">
+        <div class="stars">
+          <svg class="star" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/></svg>
+          <svg class="star" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/></svg>
+          <svg class="star" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/></svg>
+          <svg class="star" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/></svg>
+          <svg class="star" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/></svg>
+        </div>
+        <p class="testi-text">"I write release notes for 3 products. What used to take me a full Friday afternoon now takes 20 minutes. The voice matching is uncanny — my team keeps asking who proofed it."</p>
+        <div class="testi-author">
+          <div class="testi-av" style="background:#4f8eff">MK</div>
+          <div>
+            <div class="testi-name">Maya Kline</div>
+            <div class="testi-role">Product Lead · Relay</div>
+          </div>
+        </div>
+      </div>
+      <div class="testi-card">
+        <div class="stars">
+          <svg class="star" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/></svg>
+          <svg class="star" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/></svg>
+          <svg class="star" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/></svg>
+          <svg class="star" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/></svg>
+          <svg class="star" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/></svg>
+        </div>
+        <p class="testi-text">"We plugged the API into our doc-gen pipeline. Every pull request now auto-generates a plain-English summary of changes. Our non-technical stakeholders finally understand what ships."</p>
+        <div class="testi-author">
+          <div class="testi-av" style="background:#a855f7">DS</div>
+          <div>
+            <div class="testi-name">Dev Sharma</div>
+            <div class="testi-role">Staff Engineer · Buildkite</div>
+          </div>
+        </div>
+      </div>
+      <div class="testi-card">
+        <div class="stars">
+          <svg class="star" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/></svg>
+          <svg class="star" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/></svg>
+          <svg class="star" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/></svg>
+          <svg class="star" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/></svg>
+          <svg class="star" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/></svg>
+        </div>
+        <p class="testi-text">"I was skeptical — I've tried four AI writing tools. Synthos is the first one that doesn't make me feel like I'm editing a robot's homework. It actually sounds like us."</p>
+        <div class="testi-author">
+          <div class="testi-av" style="background:#f59e0b">PL</div>
+          <div>
+            <div class="testi-name">Priya Lal</div>
+            <div class="testi-role">Head of Content · Clerk</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- CTA -->
+<section id="cta" class="cta-section">
+  <div class="section-inner">
+    <div class="cta-box" data-reveal>
+      <div class="hero-badge" style="margin:0 auto 1.75rem">
+        <div class="badge-dot"></div>
+        50 free generations, no card needed
+      </div>
+      <h2>Ready to write better?</h2>
+      <p class="cta-sub">Join 4,200+ teams who cut writing time by 70%.</p>
+      <div class="cta-input-row">
+        <input type="email" class="cta-input" placeholder="your@email.com" />
+        <a href="#" class="btn btn-primary">Start free</a>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- FOOTER -->
+<footer>
+  <div class="footer-inner">
+    <div>
+      <a href="#" class="nav-logo" style="margin-bottom:0.5rem;display:inline-flex">
+        <div class="logo-mark"><svg viewBox="0 0 16 16" fill="none"><path d="M3 8h10M8 3l5 5-5 5" stroke="#0a0b0e" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg></div>
+        Synthos
+      </a>
+      <p class="footer-copy" style="margin-top:0.5rem">© 2026 Synthos Inc. All rights reserved.</p>
+    </div>
+    <div class="footer-links">
+      <a href="#">Privacy</a>
+      <a href="#">Terms</a>
+      <a href="#">Status</a>
+      <a href="#">GitHub</a>
+    </div>
+  </div>
+</footer>
+
+<script>
+  // Nav scroll
+  const nav = document.getElementById('nav');
+  window.addEventListener('scroll', () => {
+    nav.classList.toggle('scrolled', window.scrollY > 20);
+  });
+
+  // Mobile menu
+  function toggleMenu() {
+    document.getElementById('navLinks').classList.toggle('open');
+    document.getElementById('navCta').classList.toggle('open');
+  }
+
+  // Scroll reveal
+  const reveals = document.querySelectorAll('[data-reveal]');
+  const ro = new IntersectionObserver(entries => {
+    entries.forEach(e => { if (e.isIntersecting) { e.target.classList.add('visible'); ro.unobserve(e.target); } });
+  }, { threshold: 0.1 });
+  reveals.forEach(el => ro.observe(el));
+
+  // Typewriter effect
+  const full = "Synthos turns rough ideas into publication-ready content in seconds.";
+  let i = 0;
+  function type() {
+    const el = document.querySelector('.t-text');
+    if (el && i < full.length) { el.textContent = full.slice(0, ++i); setTimeout(type, 28); }
+  }
+  setTimeout(type, 1200);
+</script>
+</body>
+</html>
